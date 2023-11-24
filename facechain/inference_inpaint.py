@@ -18,9 +18,12 @@ from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 from torch import multiprocessing
 from transformers import pipeline as tpipeline
+import time
 
 from facechain.data_process.preprocessing import Blipv2
 from facechain.merge_lora import merge_lora
+
+INFERENCE_BASE_DIR = '/facechain/inpaint_result'
 
 
 def _data_process_fn_process(input_img_dir):
@@ -689,7 +692,7 @@ class GenPortrait_inpaint:
         self.num_faces = num_faces
 
     def __call__(self, input_img_dir1=None, input_img_dir2=None, base_model_path=None,
-                 lora_model_path1=None, lora_model_path2=None, sub_path=None, revision=None):
+                 lora_model_path1=None, lora_model_path2=None, sub_path=None, revision=None, task_id='gradio'):
         base_model_path = snapshot_download(base_model_path, revision=revision)
         if sub_path is not None and len(sub_path) > 0:
             base_model_path = os.path.join(base_model_path, sub_path)
@@ -853,7 +856,9 @@ class GenPortrait_inpaint:
         outputs_RGB = []
         for out_tmp in outputs:
             outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
-        image_path = './lora_result.png'
+        if os.path.exists(f'{INFERENCE_BASE_DIR}/{task_id}') is not True:
+            os.makedirs(f'{INFERENCE_BASE_DIR}/{task_id}')
+        image_path = f'{INFERENCE_BASE_DIR}/{task_id}/inpaint_{task_id}_{int(round(time.time() * 1000))}.png'
         if len(outputs) > 0:
             result = concatenate_images(outputs)
             cv2.imwrite(image_path, result)

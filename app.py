@@ -310,7 +310,8 @@ def launch_pipeline_inpaint(uuid,
                             user_model_A=None,
                             user_model_B=None,
                             num_faces=1,
-                            template_image=None):
+                            template_image=None,
+                            task_id='gradio'):
     before_queue_size = 0
     before_done_count = inference_done_count
 
@@ -400,7 +401,7 @@ def launch_pipeline_inpaint(uuid,
 
     with ProcessPoolExecutor(max_workers=5) as executor:
         future = executor.submit(gen_portrait, instance_data_dir_A, instance_data_dir_B, base_model,\
-                                 lora_model_path_A, lora_model_path_B, sub_path=sub_path, revision=revision)
+                                 lora_model_path_A, lora_model_path_B, sub_path=sub_path, revision=revision, task_id=task_id)
 
         while not future.done():
             is_processing = future.running()
